@@ -23,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { FIELD_NAMES, FIELD_TYPES } from "@/constants";
-import ImageUpload from "./ImageUpload";
+import FileUpload from "@/components/FileUpload";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
@@ -43,13 +43,12 @@ const AuthForm = <T extends FieldValues>({
   const router = useRouter();
 
   const isSignIn = type === "SIGN_IN";
-  // 1. Define your form.
+
   const form: UseFormReturn<T> = useForm({
     resolver: zodResolver(schema),
     defaultValues: defaultValues as DefaultValues<T>,
   });
 
-  // 2. Define a submit handler.
   const handleSubmit: SubmitHandler<T> = async (data) => {
     const result = await onSubmit(data);
 
@@ -65,7 +64,7 @@ const AuthForm = <T extends FieldValues>({
     } else {
       toast({
         title: `Error ${isSignIn ? "signing in" : "signing up"}`,
-        description: result.error ?? "An error occured",
+        description: result.error ?? "An error occurred.",
         variant: "destructive",
       });
     }
@@ -78,66 +77,68 @@ const AuthForm = <T extends FieldValues>({
       </h1>
       <p className="text-light-100">
         {isSignIn
-          ? "Access the best collection of resources, and stay updated"
+          ? "Access the vast collection of resources, and stay updated"
           : "Please complete all fields and upload a valid university ID to gain access to the library"}
       </p>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSubmit)}
-          className="space-y-6 w-full"
+          className="w-full space-y-6"
         >
-          {Object.keys(defaultValues).map((field) => {
-            return (
-              <FormField
-                key={field}
-                control={form.control}
-                name={field as Path<T>}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="capitalize">
-                      {FIELD_NAMES[field.name as keyof typeof FIELD_NAMES]}
-                    </FormLabel>
-                    <FormControl>
-                      {field.name === "universityCard" ? (
-                        <ImageUpload
-                          onFileChange={field.onChange}
-                          variant="dark"
-                        />
-                      ) : (
-                        <Input
-                          required
-                          type={
-                            FIELD_TYPES[field.name as keyof typeof FIELD_TYPES]
-                          }
-                          {...field}
-                          className="form-input"
-                        />
-                      )}
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            );
-          })}
+          {Object.keys(defaultValues).map((field) => (
+            <FormField
+              key={field}
+              control={form.control}
+              name={field as Path<T>}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="capitalize">
+                    {FIELD_NAMES[field.name as keyof typeof FIELD_NAMES]}
+                  </FormLabel>
+                  <FormControl>
+                    {field.name === "universityCard" ? (
+                      <FileUpload
+                        type="image"
+                        accept="image/*"
+                        placeholder="Upload your ID"
+                        folder="ids"
+                        variant="dark"
+                        onFileChange={field.onChange}
+                      />
+                    ) : (
+                      <Input
+                        required
+                        type={
+                          FIELD_TYPES[field.name as keyof typeof FIELD_TYPES]
+                        }
+                        {...field}
+                        className="form-input"
+                      />
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ))}
 
           <Button type="submit" className="form-btn">
-            {isSignIn ? "Sign in" : "Sign up"}
+            {isSignIn ? "Sign In" : "Sign Up"}
           </Button>
         </form>
       </Form>
+
       <p className="text-center text-base font-medium">
-        {isSignIn ? "New to Bookwise?" : "Already have an account?"}
+        {isSignIn ? "New to BookWise? " : "Already have an account? "}
+
+        <Link
+          href={isSignIn ? "/sign-up" : "/sign-in"}
+          className="font-bold text-primary"
+        >
+          {isSignIn ? "Create an account" : "Sign in"}
+        </Link>
       </p>
-      <Link
-        href={isSignIn ? "/sign-up" : "/sign-in"}
-        className="font-bold text-primary"
-      >
-        {isSignIn ? "Create an account?" : "Sign in"}
-      </Link>
     </div>
   );
 };
-
 export default AuthForm;
